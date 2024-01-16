@@ -41,12 +41,14 @@ img {
   display: flex;
   align-items: center;
   justify-content: center;
+  text-align: center; /* Додайте цей рядок для вирівнювання по центру */
 }
 
 .gallery-box {
   max-width: 1440px;
   padding: 16px;
   margin: 0 auto;
+  text-align: center;
 }
 
 .gallery {
@@ -124,57 +126,31 @@ input:active {
   outline: none;
 }
 
-.btn {
-  box-sizing: border-box;
+.btn,
+.load_more_btn {
+  /* Специфікації для кнопок "Load More" і "Search" */
+  display: inline-flex;
   padding: 8px 16px;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
   border-radius: 8px;
-  height: 40px;
-  background-color: #4e75ff;
+  background: #4e75ff;
   color: #fff;
   font-family: Montserrat;
   font-size: 16px;
+  font-style: normal;
   font-weight: 500;
-  line-height: 1.5em;
-  /* 150% */
+  line-height: 24px; /* 150% */
   letter-spacing: 0.64px;
-  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.3s ease;
+  border: none; /* Додано для видалення бордера */
 }
 
-.search-btn:hover {
+.btn:hover,
+.search-btn:hover,
+.load_more_btn:hover {
   background-color: #6c8cff;
-}
-
-.loader {
-  width: 64px;
-  height: 64px;
-  position: relative;
-  background-image: linear-gradient(#fff 16px, transparent 0),
-    linear-gradient(#ff3d00 16px, transparent 0),
-    linear-gradient(#ff3d00 16px, transparent 0),
-    linear-gradient(#fff 16px, transparent 0);
-  background-repeat: no-repeat;
-  background-size: 16px 16px;
-  background-position: left top, left bottom, right top, right bottom;
-  animation: rotate 1s linear infinite;
-  margin: 0 auto;
-}
-
-@keyframes rotate {
-  0% {
-    width: 64px;
-    height: 64px;
-    transform: rotate(0deg);
-  }
-
-  50% {
-    width: 30px;
-    height: 30px;
-    transform: rotate(180deg);
-  }
-
-  100% {
-    width: 64px;
-    height: 64px;
-    transform: rotate(360deg);
-  }
 }

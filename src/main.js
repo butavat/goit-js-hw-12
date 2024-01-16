@@ -1,3 +1,5 @@
+// main.js
+
 'use strict';
 
 import iziToast from 'izitoast';
@@ -10,6 +12,7 @@ const form = document.querySelector('.form');
 const imagesGallery = document.querySelector('.gallery');
 const loader = document.querySelector('.loader');
 const loadMoreButton = document.querySelector('.load_more_btn');
+const loaderContainer = document.querySelector('.loader-container');
 
 const BASE_URL = 'https://pixabay.com/api/?';
 const API_KEY = '41732338-ca5909782120305119b6393dc';
@@ -24,8 +27,6 @@ const searchParamsDefault = {
   per_page: 40,
 };
 
-let currentSearchQuery = '';
-
 const lightbox = new SimpleLightbox('.gallery a', {
   captionsData: 'alt',
   captionDelay: 250,
@@ -39,7 +40,11 @@ const showLoader = state => {
 };
 
 const showLoadMoreButton = state => {
-  loadMoreButton.style.display = state ? 'block' : 'none';
+  loadMoreButton.style.display = state ? 'flex' : 'none';
+};
+
+const toggleLoaderVisibility = state => {
+  loaderContainer.style.display = state ? 'flex' : 'none';
 };
 
 const renderImages = request => {
@@ -112,47 +117,51 @@ const fetchImages = async () => {
   } catch (error) {
     console.error(error.message);
   } finally {
-    showLoader(false);
+    toggleLoaderVisibility(false);
   }
 };
 
 const loadMoreHandler = () => {
   searchParamsDefault.page += 1;
+  toggleLoaderVisibility(true); // Показуємо індикатор завантаження перед завантаженням зображень
   fetchImages();
 };
 
-form.addEventListener('submit', event => {
+const formSubmitHandler = async event => {
   event.preventDefault();
-  showLoader(true);
-
+  toggleLoaderVisibility(true); // Показуємо індикатор завантаження перед пошуком
+  showLoadMoreButton(false); // Ховаємо кнопку "Load more" перед пошуком
   const searchInput = event.target.elements.search;
-  const newSearchQuery = encodeURIComponent(searchInput.value.trim());
+  const searchTerm = encodeURIComponent(searchInput.value.trim());
 
-  if (newSearchQuery === '') {
+  if (searchTerm === '') {
     console.error('Please enter a valid search query.');
-    showLoader(false);
+    toggleLoaderVisibility(false);
     return;
   }
 
-  if (newSearchQuery !== currentSearchQuery) {
-    // If new search query, reset page number
-    searchParamsDefault.page = 1;
-    imagesGallery.innerHTML = ''; // Clear gallery for new search
-  }
+  searchParamsDefault.q = searchTerm;
+  searchParamsDefault.page = 1;
 
-  searchParamsDefault.q = newSearchQuery;
-  currentSearchQuery = newSearchQuery;
+  imagesGallery.innerHTML = ''; // Очищуємо галерею при новому пошуку
 
-  fetchImages();
+  await fetchImages();
+  toggleLoaderVisibility(false);
+  showLoadMoreButton(true);
+  // Зберігаємо значення пошукового терміну для подальших запитів
+  form.dataset.searchTerm = searchTerm;
+};
 
-  searchInput.value = '';
-});
+// Додаємо обробник сабміту форми
+form.addEventListener('submit', formSubmitHandler);
 
-window.addEventListener('scroll', () => {
-  const scrollPosition = window.scrollY + window.innerHeight;
-  const bodyHeight = document.body.offsetHeight;
+// Додаємо обробник для кнопки "Load more"
+loadMoreButton.addEventListener('click', loadMoreHandler);
 
-  if (scrollPosition >= bodyHeight - 200) {
-    loadMoreHandler();
+// Перевірка видимості кнопки "Load more" при завантаженні сторінки
+document.addEventListener('DOMContentLoaded', () => {
+  const initialSearchTerm = form.dataset.searchTerm;
+  if (initialSearchTerm) {
+    formSubmitHandler({ target: { elements: { search: { value: initialSearchTerm } } } });
   }
 });
