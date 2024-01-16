@@ -1,130 +1,158 @@
 'use strict';
 
-// Описаний у документації
 import iziToast from 'izitoast';
-// Додатковий імпорт стилів
 import 'izitoast/dist/css/iziToast.min.css';
-// Описаний у документації
 import SimpleLightbox from 'simplelightbox';
-// Додатковий імпорт стилів
 import 'simplelightbox/dist/simple-lightbox.min.css';
 import axios from 'axios';
 
-const input = document.querySelector('.search-input');
-const form = document.querySelector('.search-form');
-const ul = document.querySelector('.images-list');
-const divGallery = document.querySelector('.gallery'); //for spinner
-const loadMoreBtn = document.querySelector('.load_more_btn');
+const form = document.querySelector('.form');
+const imagesGallery = document.querySelector('.gallery');
+const loader = document.querySelector('.loader');
+const loadMoreButton = document.querySelector('.load_more_btn');
 
-// Створення нового елементу для завантажувача
-const loaderElement = document.createElement('span');
-loaderElement.className = 'loader is-hidden';
+const BASE_URL = 'https://pixabay.com/api/?';
+const API_KEY = '41732338-ca5909782120305119b6393dc';
 
-// Додавання завантажувача до списку
-divGallery.append(loaderElement);
+const searchParamsDefault = {
+  key: API_KEY,
+  q: '',
+  image_type: 'photo',
+  orientation: 'horizontal',
+  safesearch: true,
+  page: 1,
+  per_page: 40,
+};
 
-const loaderClass = document.querySelector('.loader');
+let currentSearchQuery = '';
 
-const KEY = '41487030-c0d4f2e8fae3a5e9414bad560';
-
-// Ініціалізація SimpleLightbox один раз поза обробником подій
 const lightbox = new SimpleLightbox('.gallery a', {
   captionsData: 'alt',
-  captionDelay: '250',
+  captionDelay: 250,
+  close: true,
+  enableKeyboard: true,
+  docClose: true,
 });
 
-// Виклик повідомлення з помилкою
-function errorCommit() {
-  iziToast.show({
-    title: '',
-    message:
-      'Sorry, there are no images matching your search query. Please try again!',
-    messageColor: '#FFFFFF',
-    backgroundColor: '#EF4040',
-    color: '#B51B1B',
-    iconUrl: './bi_x-octagon.svg',
-    iconColor: '#FAFAFB',
-    position: 'topRight',
-  });
-}
+const showLoader = state => {
+  loader.style.display = state ? 'block' : 'none';
+};
 
-function renderImages(request) {
-  console.log(request);
+const showLoadMoreButton = state => {
+  loadMoreButton.style.display = state ? 'block' : 'none';
+};
+
+const renderImages = request => {
   return request.reduce(
     (html, img) =>
       html +
       `
-    <li class="images-item">
-      <a class="images-link" href="${img.largeImageURL}"><img class="images" data-source="${img.largeImageURL}" alt="${img.tags}" src="${img.webformatURL}" width="360" height="200"></a>
-      <div class="description">
-          <div>
-            <p><b>Likes</b></p>
-            <p>${img.likes}</p>
-          </div>
-          <div>
-            <p><b>Views</b></p>
-            <p>${img.views}</p>
-          </div>
-          <div>
-            <p><b>Comments</b></p>
-            <p>${img.comments}</p>
-          </div>
-        <div>
-          <p><b>Downloads</b></p>
-          <p>${img.downloads}</p>
-        </div>
+    <li class="gallery-item">
+      <a href="${img.largeImageURL}"> 
+        <img class="gallery-img" src="${img.webformatURL}" alt="${img.tags}" />
+      </a>
+      <div class="gallery-text-box">
+        <p>Likes: <span class="text-value">${img.likes}</span></p>
+        <p>Views: <span class="text-value">${img.views}</span></p>
+        <p>Comments: <span class="text-value">${img.comments}</span></p>
+        <p>Downloads: <span class="text-value">${img.downloads}</span></p>
       </div>
     </li>
-      `,
+    `,
     ''
   );
-}
+};
 
-async function fetchImages() {
+const fetchImages = async () => {
   try {
-    const response = await axios.get();
+    const response = await axios.get(BASE_URL, {
+      params: { ...searchParamsDefault, page: searchParamsDefault.page, q: searchParamsDefault.q },
+    });
 
-    // Обробка помилки при відсутніх зображеннях
     if (response.data.hits.length === 0) {
-      errorCommit();
+      iziToast.error({
+        position: 'bottomCenter',
+        messageColor: '#FFFFFF',
+        backgroundColor: '#EF4040',
+        titleSize: '8px',
+        closeOnEscape: true,
+        message:
+          'Sorry, there are no images matching your search query. Please try again!',
+      });
     } else {
-      input.value = '';
-      // Приховання завантажувача після отримання результатів
-      loaderClass.classList.add('is-hidden');
-      // Рендер зображень
-      ul.innerHTML = renderImages(response.data.hits);
-      // Виклик методу для оновлення галереї
+      const cardHeight = imagesGallery.querySelector('.gallery-item')
+        ?.getBoundingClientRect().height;
+
+      imagesGallery.innerHTML += renderImages(response.data.hits);
       lightbox.refresh();
-      // Відображення кнопки Load more
-      loadMoreBtn.classList.remove('is-hidden');
+
+      if (
+        searchParamsDefault.page * searchParamsDefault.per_page >=
+        response.data.totalHits
+      ) {
+        showLoadMoreButton(false);
+        iziToast.info({
+          position: 'bottomCenter',
+          messageColor: '#FFFFFF',
+          backgroundColor: '#3e4f65',
+          titleSize: '8px',
+          closeOnEscape: true,
+          message:
+            "We're sorry, but you've reached the end of search results.",
+        });
+      } else {
+        showLoadMoreButton(true);
+      }
+
+      window.scrollBy({
+        top: cardHeight * 2,
+        behavior: 'smooth',
+      });
     }
-    return response;
   } catch (error) {
-    ul.innerHTML = '';
-    input.value = '';
-    // Приховання завантажувача після отримання результатів
-    loaderClass.classList.add('is-hidden');
-    errorCommit();
+    console.error(error.message);
+  } finally {
+    showLoader(false);
   }
-}
+};
 
-const listener = event => {
-  event.preventDefault();
-  // Переключення видимості завантажувача
-  loaderClass.classList.remove('is-hidden');
-
-  const query = event.currentTarget.elements.query.value;
-
-  axios.defaults.baseURL = 'https://pixabay.com/api/';
-  axios.defaults.params = {
-    key: KEY,
-    q: query,
-    image_type: 'photo',
-    orientation: 'horizontal',
-    safesearch: 'true',
-  };
-
+const loadMoreHandler = () => {
+  searchParamsDefault.page += 1;
   fetchImages();
 };
 
-form.addEventListener('submit', listener);
+form.addEventListener('submit', event => {
+  event.preventDefault();
+  showLoader(true);
+
+  const searchInput = event.target.elements.search;
+  const newSearchQuery = encodeURIComponent(searchInput.value.trim());
+
+  if (newSearchQuery === '') {
+    console.error('Please enter a valid search query.');
+    showLoader(false);
+    return;
+  }
+
+  if (newSearchQuery !== currentSearchQuery) {
+    // If new search query, reset page number
+    searchParamsDefault.page = 1;
+    imagesGallery.innerHTML = ''; // Clear gallery for new search
+  }
+
+  searchParamsDefault.q = newSearchQuery;
+  currentSearchQuery = newSearchQuery;
+
+  fetchImages();
+
+  searchInput.value = '';
+});
+
+window.addEventListener('scroll', () => {
+  const scrollPosition = window.scrollY + window.innerHeight;
+  const bodyHeight = document.body.offsetHeight;
+
+  if (scrollPosition >= bodyHeight - 200) {
+    loadMoreHandler();
+  }
+});

@@ -5,7 +5,7 @@
   <meta charset="UTF-8" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>JS</title>
+  <title>Vanilla App Template</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500&display=swap" rel="stylesheet" />
@@ -13,14 +13,28 @@
 </head>
 
 <body>
-  <form class="search-form">
-    <input class="search-input" type="text" placeholder="Search images..." name="query" />
-    <button class="search-btn">Search</button>
+  <!-- <load ="partials/header.html" /> -->
+
+  <!-- <section> -->
+  <!-- <h1>Lorem ipsum dolor sit amet.</h1> -->
+  <!-- Path to images as from index.html file -->
+  <!-- <img src="./img/javascript.svg" alt="" /> -->
+  <!-- </section> -->
+
+  <!-- Loads the specified .html file -->
+
+  <load="./partials/header.html" />
+  <form class="form">
+    <input type="text" name="search" placeholder="Search images..." required />
+    <button class="btn" type="submit">Search</button>
   </form>
-  <div class="gallery">
-    <ul class="images-list"></ul>
-    <button class="load_more_btn is-hidden" type="button">Load more</button>
+
+  <div class="gallery-box">
+    <span class="loader is-hidden"></span>
+    <ul class="gallery"></ul>
+    <button class="load_more_btn is-hidden" type="button" onclick="loadMoreHandler()">Load more</button>
   </div>
+
   <script type="module" src="./main.js"></script>
 </body>
 
