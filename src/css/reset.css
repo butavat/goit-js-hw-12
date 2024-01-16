@@ -49,6 +49,7 @@ img {
   padding: 16px;
   margin: 0 auto;
   text-align: center;
+  position: relative;
 }
 
 .gallery {
@@ -153,4 +154,15 @@ input:active {
 .search-btn:hover,
 .load_more_btn:hover {
   background-color: #6c8cff;
+}
+
+.load_more_btn {
+  position: absolute;
+  bottom: -40px; /* Змініть це значення відповідно до вашого дизайну */
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.load_more_btn.is-hidden {
+  display: none;
 }
