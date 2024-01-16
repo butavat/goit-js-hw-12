@@ -5,7 +5,7 @@
   <meta charset="UTF-8" />
   <link rel="icon" type="image/svg+xml" href="/goit-js-hw-12/favicon.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>JS</title>
+  <title>Vanilla App Template</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500&display=swap" rel="stylesheet" />
@@ -13,18 +13,60 @@
   <script type="module" crossorigin src="/goit-js-hw-12/commonHelpers.js"></script>
   <link rel="modulepreload" crossorigin href="/goit-js-hw-12/assets/vendor-89feecc5.js">
   <link rel="stylesheet" href="/goit-js-hw-12/assets/vendor-eb6030bc.css">
-  <link rel="stylesheet" href="/goit-js-hw-12/assets/index-d3b9c197.css">
+  <link rel="stylesheet" href="/goit-js-hw-12/assets/index-e190a3ff.css">
 </head>
 
 <body>
-  <form class="search-form">
-    <input class="search-input" type="text" placeholder="Search images..." name="query" />
-    <button class="search-btn">Search</button>
+  <!-- <header class="header">
+  <nav class="nav">
+    <ul class="nav-list">
+      <li class="nav-item">
+        <a href="./page-2.html" class="nav-link">Page 2</a>
+
+      </li>
+
+      <li class="nav-item">
+        <a href="./page-3.html" class="nav-link">Page 3</a>
+
+      </li>
+    </ul>
+  </nav>
+</header> -->
+
+  <!-- <section> -->
+  <!-- <h1>Lorem ipsum dolor sit amet.</h1> -->
+  <!-- Path to images as from index.html file -->
+  <!-- <img src="./img/javascript.svg" alt="" /> -->
+  <!-- </section> -->
+
+  <!-- Loads the specified .html file -->
+
+  <header class="header">
+  <nav class="nav">
+    <ul class="nav-list">
+      <li class="nav-item">
+        <a href="./page-2.html" class="nav-link">Page 2</a>
+
+      </li>
+
+      <li class="nav-item">
+        <a href="./page-3.html" class="nav-link">Page 3</a>
+
+      </li>
+    </ul>
+  </nav>
+</header>
+  <form class="form">
+    <input type="text" name="search" placeholder="Search images..." required />
+    <button class="btn" type="submit">Search</button>
   </form>
-  <div class="gallery">
-    <ul class="images-list"></ul>
-    <button class="load_more_btn is-hidden" type="button">Load more</button>
+
+  <div class="gallery-box">
+    <span class="loader is-hidden"></span>
+    <ul class="gallery"></ul>
+    <button class="load_more_btn is-hidden" type="button" onclick="loadMoreHandler()">Load more</button>
   </div>
+
   
 </body>
 
