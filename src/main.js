@@ -1,7 +1,5 @@
 // main.js
 
-'use strict';
-
 import iziToast from 'izitoast';
 import 'izitoast/dist/css/iziToast.min.css';
 import SimpleLightbox from 'simplelightbox';
@@ -14,19 +12,6 @@ const loader = document.querySelector('.loader');
 const loadMoreButton = document.querySelector('.load_more_btn');
 const loaderContainer = document.querySelector('.loader-container');
 
-const BASE_URL = 'https://pixabay.com/api/?';
-const API_KEY = '41732338-ca5909782120305119b6393dc';
-
-const searchParamsDefault = {
-  key: API_KEY,
-  q: '',
-  image_type: 'photo',
-  orientation: 'horizontal',
-  safesearch: true,
-  page: 1,
-  per_page: 40,
-};
-
 const lightbox = new SimpleLightbox('.gallery a', {
   captionsData: 'alt',
   captionDelay: 250,
@@ -35,20 +20,20 @@ const lightbox = new SimpleLightbox('.gallery a', {
   docClose: true,
 });
 
-const showLoader = state => {
+const showLoader = (state) => {
   loader.style.display = state ? 'block' : 'none';
 };
 
-const showLoadMoreButton = state => {
+const showLoadMoreButton = (state) => {
   loadMoreButton.style.display = state ? 'flex' : 'none';
 };
 
-const toggleLoaderVisibility = state => {
+const toggleLoaderVisibility = (state) => {
   loaderContainer.style.display = state ? 'flex' : 'none';
 };
 
-const renderImages = request => {
-  return request.reduce(
+const renderImages = (images) => {
+  return images.reduce(
     (html, img) =>
       html +
       `
@@ -68,42 +53,41 @@ const renderImages = request => {
   );
 };
 
-const fetchImages = async () => {
+const fetchImages = async (params) => {
+  const BASE_URL = 'https://pixabay.com/api/?';
+  const API_KEY = '41732338-ca5909782120305119b6393dc';
+
   try {
+    showLoader(true);
+
     const response = await axios.get(BASE_URL, {
-      params: { ...searchParamsDefault, page: searchParamsDefault.page, q: searchParamsDefault.q },
+      params: { ...params },
     });
 
     if (response.data.hits.length === 0) {
       iziToast.error({
-        position: 'bottomCenter',
+        position: 'bottomRight',
         messageColor: '#FFFFFF',
         backgroundColor: '#EF4040',
         titleSize: '8px',
         closeOnEscape: true,
-        message:
-          'Sorry, there are no images matching your search query. Please try again!',
+        message: 'Sorry, there are no images matching your search query. Please try again!',
       });
     } else {
-      const cardHeight = imagesGallery.querySelector('.gallery-item')
-        ?.getBoundingClientRect().height;
+      const cardHeight = imagesGallery.querySelector('.gallery-item')?.getBoundingClientRect().height;
 
-      imagesGallery.innerHTML += renderImages(response.data.hits);
+      imagesGallery.insertAdjacentHTML('beforeend', renderImages(response.data.hits));
       lightbox.refresh();
 
-      if (
-        searchParamsDefault.page * searchParamsDefault.per_page >=
-        response.data.totalHits
-      ) {
+      if (params.page * params.per_page >= response.data.totalHits) {
         showLoadMoreButton(false);
         iziToast.info({
-          position: 'bottomCenter',
+          position: 'bottomRight',
           messageColor: '#FFFFFF',
           backgroundColor: '#3e4f65',
           titleSize: '8px',
           closeOnEscape: true,
-          message:
-            "We're sorry, but you've reached the end of search results.",
+          message: "We're sorry, but you've reached the end of search results.",
         });
       } else {
         showLoadMoreButton(true);
@@ -115,50 +99,77 @@ const fetchImages = async () => {
       });
     }
   } catch (error) {
-    console.error(error.message);
+    iziToast.error({
+      position: 'bottomRight',
+      messageColor: '#FFFFFF',
+      backgroundColor: '#EF4040',
+      titleSize: '8px',
+      closeOnEscape: true,
+      message: 'An error occurred while fetching images. Please try again.',
+    });
   } finally {
     toggleLoaderVisibility(false);
   }
 };
 
-const loadMoreHandler = () => {
-  searchParamsDefault.page += 1;
-  toggleLoaderVisibility(true); // Показуємо індикатор завантаження перед завантаженням зображень
-  fetchImages();
+const loadMoreHandler = async () => {
+  const apiRequestParams = {
+    key: '41732338-ca5909782120305119b6393dc',
+    q: form.dataset.searchTerm,
+    image_type: 'photo',
+    orientation: 'horizontal',
+    safesearch: true,
+    page: 1,
+    per_page: 40,
+  };
+
+  apiRequestParams.page += 1;
+  toggleLoaderVisibility(true);
+  await fetchImages(apiRequestParams);
 };
 
-const formSubmitHandler = async event => {
+const formSubmitHandler = async (event) => {
   event.preventDefault();
-  toggleLoaderVisibility(true); // Показуємо індикатор завантаження перед пошуком
-  showLoadMoreButton(false); // Ховаємо кнопку "Load more" перед пошуком
+  toggleLoaderVisibility(true);
+  showLoadMoreButton(false);
   const searchInput = event.target.elements.search;
   const searchTerm = encodeURIComponent(searchInput.value.trim());
 
   if (searchTerm === '') {
-    console.error('Please enter a valid search query.');
+    iziToast.error({
+      position: 'bottomRight',
+      messageColor: '#FFFFFF',
+      backgroundColor: '#EF4040',
+      titleSize: '8px',
+      closeOnEscape: true,
+      message: 'Please enter a valid search query.',
+    });
     toggleLoaderVisibility(false);
     return;
   }
 
-  searchParamsDefault.q = searchTerm;
-  searchParamsDefault.page = 1;
+  const apiRequestParams = {
+    key: '41732338-ca5909782120305119b6393dc',
+    q: searchTerm,
+    image_type: 'photo',
+    orientation: 'horizontal',
+    safesearch: true,
+    page: 1,
+    per_page: 40,
+  };
 
-  imagesGallery.innerHTML = ''; // Очищуємо галерею при новому пошуку
+  imagesGallery.innerHTML = '';
 
-  await fetchImages();
+  await fetchImages(apiRequestParams);
   toggleLoaderVisibility(false);
   showLoadMoreButton(true);
-  // Зберігаємо значення пошукового терміну для подальших запитів
   form.dataset.searchTerm = searchTerm;
 };
 
-// Додаємо обробник сабміту форми
 form.addEventListener('submit', formSubmitHandler);
 
-// Додаємо обробник для кнопки "Load more"
 loadMoreButton.addEventListener('click', loadMoreHandler);
 
-// Перевірка видимості кнопки "Load more" при завантаженні сторінки
 document.addEventListener('DOMContentLoaded', () => {
   const initialSearchTerm = form.dataset.searchTerm;
   if (initialSearchTerm) {
