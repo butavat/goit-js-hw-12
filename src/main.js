@@ -1,10 +1,10 @@
-// main.js
-
 import iziToast from 'izitoast';
 import 'izitoast/dist/css/iziToast.min.css';
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
 import axios from 'axios';
+
+let searchQuery = '';
 
 const form = document.querySelector('.form');
 const imagesGallery = document.querySelector('.gallery');
@@ -25,7 +25,8 @@ const showLoader = (state) => {
 };
 
 const showLoadMoreButton = (state) => {
-  loadMoreButton.style.display = state ? 'flex' : 'none';
+  const shouldShow = state && imagesGallery.children.length >= 40;
+  loadMoreButton.style.display = shouldShow ? 'flex' : 'none';
 };
 
 const toggleLoaderVisibility = (state) => {
@@ -53,7 +54,7 @@ const renderImages = (images) => {
   );
 };
 
-const fetchImages = async (params) => {
+const fetchImages = async ({ query, page, perPage }) => {
   const BASE_URL = 'https://pixabay.com/api/?';
   const API_KEY = '41732338-ca5909782120305119b6393dc';
 
@@ -61,25 +62,28 @@ const fetchImages = async (params) => {
     showLoader(true);
 
     const response = await axios.get(BASE_URL, {
-      params: { ...params },
+      params: { key: API_KEY, q: query, page, per_page: perPage },
     });
 
     if (response.data.hits.length === 0) {
-      iziToast.error({
-        position: 'bottomRight',
-        messageColor: '#FFFFFF',
-        backgroundColor: '#EF4040',
-        titleSize: '8px',
-        closeOnEscape: true,
-        message: 'Sorry, there are no images matching your search query. Please try again!',
-      });
+      if (page === 1) {
+        // Only show the error message for the first page
+        iziToast.error({
+          position: 'bottomRight',
+          messageColor: '#FFFFFF',
+          backgroundColor: '#EF4040',
+          titleSize: '8px',
+          closeOnEscape: true,
+          message: 'Sorry, there are no images matching your search query. Please try again!',
+        });
+      }
     } else {
       const cardHeight = imagesGallery.querySelector('.gallery-item')?.getBoundingClientRect().height;
 
       imagesGallery.insertAdjacentHTML('beforeend', renderImages(response.data.hits));
       lightbox.refresh();
 
-      if (params.page * params.per_page >= response.data.totalHits) {
+      if (page * perPage >= response.data.totalHits) {
         showLoadMoreButton(false);
         iziToast.info({
           position: 'bottomRight',
@@ -114,16 +118,11 @@ const fetchImages = async (params) => {
 
 const loadMoreHandler = async () => {
   const apiRequestParams = {
-    key: '41732338-ca5909782120305119b6393dc',
-    q: form.dataset.searchTerm,
-    image_type: 'photo',
-    orientation: 'horizontal',
-    safesearch: true,
-    page: 1,
-    per_page: 40,
+    query: searchQuery,
+    page: Math.ceil(imagesGallery.children.length / 40) + 1,
+    perPage: 40,
   };
 
-  apiRequestParams.page += 1;
   toggleLoaderVisibility(true);
   await fetchImages(apiRequestParams);
 };
@@ -133,9 +132,9 @@ const formSubmitHandler = async (event) => {
   toggleLoaderVisibility(true);
   showLoadMoreButton(false);
   const searchInput = event.target.elements.search;
-  const searchTerm = encodeURIComponent(searchInput.value.trim());
+  searchQuery = encodeURIComponent(searchInput.value.trim());
 
-  if (searchTerm === '') {
+  if (searchQuery === '') {
     iziToast.error({
       position: 'bottomRight',
       messageColor: '#FFFFFF',
@@ -149,13 +148,9 @@ const formSubmitHandler = async (event) => {
   }
 
   const apiRequestParams = {
-    key: '41732338-ca5909782120305119b6393dc',
-    q: searchTerm,
-    image_type: 'photo',
-    orientation: 'horizontal',
-    safesearch: true,
+    query: searchQuery,
     page: 1,
-    per_page: 40,
+    perPage: 40,
   };
 
   imagesGallery.innerHTML = '';
@@ -163,7 +158,6 @@ const formSubmitHandler = async (event) => {
   await fetchImages(apiRequestParams);
   toggleLoaderVisibility(false);
   showLoadMoreButton(true);
-  form.dataset.searchTerm = searchTerm;
 };
 
 form.addEventListener('submit', formSubmitHandler);
@@ -171,7 +165,7 @@ form.addEventListener('submit', formSubmitHandler);
 loadMoreButton.addEventListener('click', loadMoreHandler);
 
 document.addEventListener('DOMContentLoaded', () => {
-  const initialSearchTerm = form.dataset.searchTerm;
+  const initialSearchTerm = searchQuery;
   if (initialSearchTerm) {
     formSubmitHandler({ target: { elements: { search: { value: initialSearchTerm } } } });
   }
