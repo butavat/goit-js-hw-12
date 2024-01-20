@@ -5,12 +5,12 @@ import 'simplelightbox/dist/simple-lightbox.min.css';
 import axios from 'axios';
 
 let searchQuery = '';
-
 const form = document.querySelector('.form');
 const imagesGallery = document.querySelector('.gallery');
 const loader = document.querySelector('.loader');
 const loadMoreButton = document.querySelector('.load_more_btn');
 const loaderContainer = document.querySelector('.loader-container');
+const preloader = document.querySelector('.preloader');
 
 const lightbox = new SimpleLightbox('.gallery a', {
   captionsData: 'alt',
@@ -31,6 +31,15 @@ const showLoadMoreButton = (state) => {
 
 const toggleLoaderVisibility = (state) => {
   loaderContainer.style.display = state ? 'flex' : 'none';
+};
+
+const showPreloader = (state) => {
+  preloader.style.display = state ? 'block' : 'none';
+  if (state) {
+    const searchInput = document.querySelector('.form input[name="search"]');
+    const inputRect = searchInput.getBoundingClientRect();
+    preloader.style.top = `${inputRect.bottom + 32}px`;
+  }
 };
 
 const renderImages = (images) => {
@@ -59,10 +68,10 @@ const fetchImages = async ({ query, page, perPage }) => {
   const API_KEY = '41732338-ca5909782120305119b6393dc';
 
   try {
-    showLoader(true);
+    showPreloader(true);
 
     const response = await axios.get(BASE_URL, {
-      params: { key: API_KEY, q: query, page, per_page: perPage },
+      params: { key: API_KEY, q: query, page, per_page: perPage, image_type: 'photo', orientation: 'horizontal', safesearch: true },
     });
 
     if (response.data.hits.length === 0) {
@@ -112,6 +121,7 @@ const fetchImages = async ({ query, page, perPage }) => {
       message: 'An error occurred while fetching images. Please try again.',
     });
   } finally {
+    showPreloader(false);
     toggleLoaderVisibility(false);
   }
 };
