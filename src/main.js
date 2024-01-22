@@ -1,9 +1,12 @@
+// main.js
+
 import iziToast from 'izitoast';
 import 'izitoast/dist/css/iziToast.min.css';
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
 import axios from 'axios';
 
+const API_KEY = '41732338-ca5909782120305119b6393dc';
 let searchQuery = '';
 const form = document.querySelector('.form');
 const imagesGallery = document.querySelector('.gallery');
@@ -65,7 +68,6 @@ const renderImages = (images) => {
 
 const fetchImages = async ({ query, page, perPage }) => {
   const BASE_URL = 'https://pixabay.com/api/?';
-  const API_KEY = '41732338-ca5909782120305119b6393dc';
 
   try {
     showPreloader(true);
@@ -76,7 +78,6 @@ const fetchImages = async ({ query, page, perPage }) => {
 
     if (response.data.hits.length === 0) {
       if (page === 1) {
-        // Only show the error message for the first page
         iziToast.error({
           position: 'bottomRight',
           messageColor: '#FFFFFF',
@@ -164,6 +165,7 @@ const formSubmitHandler = async (event) => {
   };
 
   imagesGallery.innerHTML = '';
+  showLoader(true);
 
   await fetchImages(apiRequestParams);
   toggleLoaderVisibility(false);
