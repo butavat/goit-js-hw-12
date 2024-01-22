@@ -70,7 +70,7 @@ const fetchImages = async ({ query, page, perPage }) => {
   const BASE_URL = 'https://pixabay.com/api/?';
 
   try {
-    showPreloader(true);
+    showLoader(true);
 
     const response = await axios.get(BASE_URL, {
       params: { key: API_KEY, q: query, page, per_page: perPage, image_type: 'photo', orientation: 'horizontal', safesearch: true },
@@ -122,7 +122,7 @@ const fetchImages = async ({ query, page, perPage }) => {
       message: 'An error occurred while fetching images. Please try again.',
     });
   } finally {
-    showPreloader(false);
+    showLoader(false);
     toggleLoaderVisibility(false);
   }
 };
@@ -165,7 +165,7 @@ const formSubmitHandler = async (event) => {
   };
 
   imagesGallery.innerHTML = '';
-  showLoader(true);
+  showPreloader(true);
 
   await fetchImages(apiRequestParams);
   toggleLoaderVisibility(false);
