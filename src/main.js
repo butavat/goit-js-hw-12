@@ -1,12 +1,9 @@
-// main.js
-
 import iziToast from 'izitoast';
 import 'izitoast/dist/css/iziToast.min.css';
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
 import axios from 'axios';
 
-const API_KEY = '41732338-ca5909782120305119b6393dc';
 let searchQuery = '';
 const form = document.querySelector('.form');
 const imagesGallery = document.querySelector('.gallery');
@@ -68,9 +65,10 @@ const renderImages = (images) => {
 
 const fetchImages = async ({ query, page, perPage }) => {
   const BASE_URL = 'https://pixabay.com/api/?';
+  const API_KEY = '41732338-ca5909782120305119b6393dc';
 
   try {
-    showLoader(true);
+    showPreloader(true);
 
     const response = await axios.get(BASE_URL, {
       params: { key: API_KEY, q: query, page, per_page: perPage, image_type: 'photo', orientation: 'horizontal', safesearch: true },
@@ -78,6 +76,7 @@ const fetchImages = async ({ query, page, perPage }) => {
 
     if (response.data.hits.length === 0) {
       if (page === 1) {
+        // Only show the error message for the first page
         iziToast.error({
           position: 'bottomRight',
           messageColor: '#FFFFFF',
@@ -122,7 +121,7 @@ const fetchImages = async ({ query, page, perPage }) => {
       message: 'An error occurred while fetching images. Please try again.',
     });
   } finally {
-    showLoader(false);
+    showPreloader(false);
     toggleLoaderVisibility(false);
   }
 };
@@ -165,7 +164,6 @@ const formSubmitHandler = async (event) => {
   };
 
   imagesGallery.innerHTML = '';
-  showPreloader(true);
 
   await fetchImages(apiRequestParams);
   toggleLoaderVisibility(false);
